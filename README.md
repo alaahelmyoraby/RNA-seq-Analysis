@@ -60,10 +60,10 @@ library(rgl)
 Load the raw count data and metadata:
 ```R
 # Load raw counts
-read_counts <- read.delim("C:/My pc/Egcombio/MODA/assignment/GSE275290_raw_counts.tsv")
+read_counts <- read.delim("C:/Egcombio/MODA/GSE275290_raw_counts.tsv")
 
 # Load metadata
-metadata <- read.csv("C:/My pc/Egcombio/MODA/assignment/Phenotable.csv")
+metadata <- read.csv("C:/Egcombio/MODA/Phenotable.csv")
 ```
 
 ---
