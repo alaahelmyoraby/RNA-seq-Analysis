@@ -1,3 +1,7 @@
+Here’s the updated **README.md** file with the additional comments for further analysis using platforms like **DAVID**, **GeneTrail**, **Enrichr**, **GOplot**, and **L1000CDS2**. These comments are added under a new section called **Further Analysis**.
+
+---
+
 # RNA-Seq Differential Expression Analysis Pipeline
 
 This repository contains an RNA-Seq differential expression analysis pipeline using DESeq2. The pipeline processes raw count data, performs exploratory data analysis, normalizes the data, identifies differentially expressed genes (DEGs), and visualizes the results.
@@ -16,8 +20,9 @@ This repository contains an RNA-Seq differential expression analysis pipeline us
    - [Expression Matrix Preprocessing](#expression-matrix-preprocessing)
    - [DESeq2 Analysis](#deseq2-analysis)
    - [Visualization](#visualization)
-4. [Results](#results)
-5. [License](#license)
+4. [Further Analysis](#further-analysis)
+5. [Results](#results)
+6. [License](#license)
 
 ---
 
@@ -157,6 +162,8 @@ exp_data_agg <- exp_data_agg[!cons_var,]
 # Perform PCA
 pca <- prcomp(t(log2(exp_data_agg + 1)), scale. = TRUE)
 plot(pca$x[,1], pca$x[,2], main = "PCA of Filtered Raw Counts", xlab = "PC1", ylab = "PC2")
+
+dim(exp_data_agg)  # Check dimensions of the filtered data
 ```
 
 ---
@@ -307,8 +314,28 @@ ggplot(top_genes, aes(x = reorder(Gene, log2FoldChange), y = log2FoldChange, fil
 
 ---
 
+## Further Analysis
+
+### 5- DO Enrichment Analysis Using DAVID, GeneTrail, Enrichr
+To perform Disease Ontology (DO) enrichment analysis, you can use the following platforms:
+- **DAVID**: Upload your DEG list to [DAVID](https://david.ncifcrf.gov/) and select "Disease" or "Functional Annotation" for enrichment analysis.
+- **GeneTrail**: Use [GeneTrail](https://genetrail.bioinf.uni-sb.de/) to analyze DEGs for disease associations.
+- **Enrichr**: Upload your DEG list to [Enrichr](https://maayanlab.cloud/Enrichr/) and select "Disease" or "Drug" libraries for enrichment analysis.
+
+---
+
+### 6- Run L1000CDS2 Tool to Characterize Small Molecules
+To identify small molecules that could reverse the disease signature, use the **L1000CDS2** tool:
+1. Visit the [L1000CDS2](https://maayanlab.cloud/l1000cds2/) website.
+2. Upload your DEG list (upregulated and downregulated genes).
+3. Run the analysis to identify small molecules that reverse the disease signature.
+
+---
+
 ## Results
 The pipeline generates the following outputs:
 - **Exploratory plots**: Boxplots, histograms, and PCA plots.
 - **DEGs**: Lists of upregulated and downregulated genes.
 - **Visualizations**: Volcano plots, heatmaps, and bar plots.
+
+---
