@@ -1,7 +1,3 @@
-Here’s how you can convert your code into a **README.md** file for GitHub documentation. This file will provide an overview of the project, explain the steps, and include the code in a readable format.
-
----
-
 # RNA-Seq Differential Expression Analysis Pipeline
 
 This repository contains an RNA-Seq differential expression analysis pipeline using DESeq2. The pipeline processes raw count data, performs exploratory data analysis, normalizes the data, identifies differentially expressed genes (DEGs), and visualizes the results.
@@ -131,13 +127,23 @@ meta <- meta %>%
 Preprocess the expression matrix:
 ```R
 # Remove NA values
-data <- na.omit(data)
+sum(is.na(data))  # Check for NA values
+data <- na.omit(data)  # Remove rows with NA values
+
+dim(data)  # Check dimensions of the data after removing NAs
+
+# Check for duplicated gene symbols
+sum(duplicated(data$Gene_symbol))
 
 # Aggregate by gene symbol
 exp_data <- data %>% 
   dplyr::select(-Gene_symbol)
 
+is.numeric(exp_data)  # Check if the data is numeric
+
 exp_data_agg <- aggregate(exp_data, by = list(data$Gene_symbol), FUN = mean)
+
+sum(duplicated(exp_data_agg$Group.1))  # Check for duplicated gene symbols after aggregation
 
 # Set row names and remove Group.1 column
 row.names(exp_data_agg) <- exp_data_agg$Group.1
@@ -179,6 +185,22 @@ res <- res[complete.cases(res),]
 res_df <- as.data.frame(res)
 res_df <- res_df %>%
   mutate(significance = ifelse(padj < 0.05 & abs(log2FoldChange) > 1, "Significant", "Not Significant"))
+
+# Normalize data using VST
+row_count <- counts(dds, normalized = FALSE)
+vsn_data <- vsn2(row_count)
+vsn_norm <- exprs(vsn_data)
+write.csv(vsn_norm, "vsn_norm.csv")
+
+# Alternatively, use normTransform for normalization
+ntd <- normTransform(dds)
+exp.norm <- assay(ntd)
+
+# Extract normalized expression levels of DEGs
+degs <- res[res$padj < 0.05 & res$log2FoldChange > 1,]
+degs.genes <- rownames(degs)
+degs.exp <- vsn_norm[degs.genes,]
+write.csv(degs.exp, "degs.exp.csv")
 ```
 
 ---
@@ -203,6 +225,14 @@ deg_100 <- res_df[order(res_df$padj, -abs(res_df$log2FoldChange)),]
 deg_100 <- deg_100[1:100,]
 deg_100_exp <- vsn_norm[rownames(deg_100),]
 
+# Create column annotations for the heatmap
+sam_condition <- meta$Condition
+column_annot <- HeatmapAnnotation(
+  Condition = sam_condition,
+  col = list(Condition = c("Control" = "blue", "FBZ" = "red"))
+)
+
+# Generate the heatmap
 Heatmap(
   matrix = deg_100_exp,
   top_annotation = column_annot,
@@ -214,6 +244,65 @@ Heatmap(
   show_column_names = TRUE,
   row_names_gp = gpar(fontsize = 4)
 )
+
+# Perform PCA on DEGs
+degs_normalized <- vsn_norm[rownames(vsn_norm) %in% rownames(degs),]
+pca_result <- prcomp(degs_normalized, scale. = TRUE)
+pca_data <- pca_result$x
+
+# Plot 2D PCA
+ggplot(pca_data, aes(x = PC1, y = PC2)) +
+  geom_point() +
+  theme_classic()
+
+# Plot 3D PCA
+mycolors <- ifelse(meta$Condition == "FBZ", "red", "lightgreen")
+plot3d(pca_result$x[, 1:3], col = mycolors, size = 12, type = "s", main = "3D PCA Plot")
+
+# Save normalized expression data for Enrichr
+exp_norm <- read.csv("vsn_norm.csv", header = TRUE, row.names = 1)
+write.table(exp_norm, file = "exp_norm.txt", sep = "\t", quote = FALSE, row.names = TRUE)
+
+# Convert DESeqResults to a data frame
+res_df <- as.data.frame(res)
+
+# Add a classification column
+res_df <- res_df %>%
+  mutate(classification = case_when(
+    padj < 0.05 & log2FoldChange > 1 ~ "significantly upregulated",
+    padj < 0.05 & log2FoldChange < -1 ~ "significantly downregulated",
+    TRUE ~ "not significant"
+  ))
+
+# Extract top 10 upregulated and downregulated genes
+top_genes <- res_df %>%
+  filter(classification %in% c("significantly upregulated", "significantly downregulated")) %>%
+  arrange(desc(abs(log2FoldChange))) %>%
+  slice_head(n = 10)
+
+# Ensure the Gene column exists
+top_genes <- top_genes %>%
+  mutate(Gene = rownames(top_genes))  # Add Gene column if not already present
+
+# Create plot for up/down regulated
+ggplot(top_genes, aes(x = reorder(Gene, log2FoldChange), y = log2FoldChange, fill = classification)) +
+  geom_bar(stat = "identity") +  # Bar plot
+  coord_flip() +  # Flip coordinates for horizontal bars
+  scale_fill_manual(values = c(
+    "significantly upregulated" = "steelblue",  # Color for upregulated genes
+    "significantly downregulated" = "coral"     # Color for downregulated genes
+  )) +
+  labs(
+    title = "Top 10 Upregulated and Downregulated Genes",
+    x = "Genes",
+    y = "Log2 Fold Change",
+    fill = "Classification"
+  ) +
+  theme_minimal() +  # Minimal theme
+  theme(
+    axis.text.y = element_text(size = 10),  # Adjust gene name text size
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold")  # Center and style the title
+  )
 ```
 
 ---
@@ -223,12 +312,3 @@ The pipeline generates the following outputs:
 - **Exploratory plots**: Boxplots, histograms, and PCA plots.
 - **DEGs**: Lists of upregulated and downregulated genes.
 - **Visualizations**: Volcano plots, heatmaps, and bar plots.
-
----
-
-## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
-
----
-
-This **README.md** file provides a clear and structured overview of your RNA-Seq analysis pipeline. You can upload it to GitHub along with your code for documentation. Let me know if you need further assistance! 😊
