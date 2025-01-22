@@ -1,7 +1,3 @@
-Here’s the updated **README.md** file with the additional comments for further analysis using platforms like **DAVID**, **GeneTrail**, **Enrichr**, **GOplot**, and **L1000CDS2**. These comments are added under a new section called **Further Analysis**.
-
----
-
 # RNA-Seq Differential Expression Analysis Pipeline
 
 This repository contains an RNA-Seq differential expression analysis pipeline using DESeq2. The pipeline processes raw count data, performs exploratory data analysis, normalizes the data, identifies differentially expressed genes (DEGs), and visualizes the results.
