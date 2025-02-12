@@ -190,10 +190,8 @@ res_df <- res_df %>%
   mutate(significance = ifelse(padj < 0.05 & abs(log2FoldChange) > 1, "Significant", "Not Significant"))
 
 # Normalize data using VST
-row_count <- counts(dds, normalized = FALSE)
-vsn_data <- vsn2(row_count)
-vsn_norm <- exprs(vsn_data)
-write.csv(vsn_norm, "vsn_norm.csv")
+ntd <- vst(dds)
+exp.norm <- assay(ntd)
 
 # Alternatively, use normTransform for normalization
 ntd <- normTransform(dds)
