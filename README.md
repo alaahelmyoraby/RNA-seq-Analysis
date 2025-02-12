@@ -305,7 +305,16 @@ ggplot(top_genes, aes(x = reorder(Gene, log2FoldChange), y = log2FoldChange, fil
     plot.title = element_text(hjust = 0.5, size = 14, face = "bold")  # Center and style the title
   )
 ```
+**VST (DESeq2)** and **VSN**:
 
+| Feature                  | VST (DESeq2)                          | VSN                                |
+|--------------------------|---------------------------------------|------------------------------------|
+| **Designed for**         | RNA-seq count data                   | General high-throughput data      |
+| **Distributional Assumption** | Negative binomial distribution     | Log-normal distribution           |
+| **Variance Stabilization** | Parametric, based on mean-variance relationship | Non-parametric, glog transformation |
+| **Normalization**        | Integrated into DESeq2 pipeline      | Standalone normalization method   |
+| **Speed**                | Fast and efficient                   | Can be slower for large datasets  |
+| **Use Case**             | RNA-seq analysis, visualization      | Multi-platform data integration   | 
 ---
 
 ## Further Analysis
